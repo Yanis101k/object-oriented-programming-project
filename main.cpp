@@ -246,21 +246,12 @@ public:
 
     // Translate shape: only perform if resulting position stays non-negative
     virtual void translate(int dx, int dy) {
-        int newX = position.getX() + dx;
-        int newY = position.getY() + dy;
-        if (newX >= 0 && newY >= 0) {
             position.translate(dx, dy);
-        } else {
-            cout << "Warning: Translation would result in negative coordinates. Operation skipped." << endl;
-        }
     }
 
     // Scale shape: only perform if factor is strictly greater than 0
     virtual void scale(int factor, bool sign) {
-        if (factor <= 0) {
-            cout << "Warning: Scaling factor must be greater than 0. Operation skipped." << endl;
-            return;
-        }
+
         position.scale(factor, sign); // This only scales the position
     }
 
@@ -355,11 +346,176 @@ void test_shape_class() {
     cout << "==================================\n" << endl;
 } */
 
+// ==============================
+// Rectangle Class
+// ==============================
+class Rectangle : public Shape {
+private:
+    int width;   // Width of the rectangle (must be positive)
+    int length;  // Length of the rectangle (must be positive)
+
+public:
+    // Constructor with validation
+    Rectangle(Coordinates position, int width, int length)
+        : Shape(4, position) // 4 sides passed to Shape constructor
+    {
+        if (width <= 0 || length <= 0) {
+            cout << "Warning: Width and length must be positive. Defaulting to 1." << endl;
+            this->width = 1;
+            this->length = 1;
+        } else {
+            this->width = width;
+            this->length = length;
+        }
+    }
+
+    // Override getArea()
+    double getArea() const override {
+        return width * length;
+    }
+
+    // Override getPerimeter()
+    double getPerimeter() const override {
+        return 2 * (width + length);
+    }
+
+    // Override scale(): update dimensions as well as position
+    void scale(int factor, bool sign) override {
+        if (factor <= 0) {
+            cout << "Warning: Scaling factor must be greater than 0. Operation skipped." << endl;
+            return;
+        }
+
+        // Scale position from base class
+        Shape::scale(factor, sign);
+
+        // Scale dimensions
+        if (sign) {
+            width *= factor;
+            length *= factor;
+        } else {
+            width /= factor;
+            length /= factor;
+        }
+
+    }
+
+    // Override display()
+    string display() const override {
+        return "Rectangle at " + position.display() +
+               ", Width = " + to_string(width) +
+               ", Length = " + to_string(length) +
+               ", Area = " + to_string(getArea()) +
+               ", Perimeter = " + to_string(getPerimeter());
+    }
+};
+
+
+// ==============================
+// Test function for Rectangle class
+// ==============================
+void test_rectangle_class() {
+    cout << "\n========== Running test_rectangle_class() ==========" << endl;
+
+    int passed = 0, failed = 0;
+
+    // Test 1: Valid constructor
+    Rectangle r1(Coordinates(10, 20), 5, 10);
+    if (r1.getCoordinates().getX() == 10 && r1.getCoordinates().getY() == 20 &&
+        r1.getArea() == 50 && r1.getPerimeter() == 30) {
+        cout << "Test 1 passed: Valid constructor and methods" << endl;
+        passed++;
+    } else {
+        cout << "Test 1 FAILED: Constructor or methods" << endl;
+        failed++;
+    }
+
+    // Test 2: Invalid constructor (negative width/length)
+    Rectangle r2(Coordinates(5, 5), -2, -4);
+    if (r2.getArea() == 1 && r2.getPerimeter() == 4) {
+        cout << "Test 2 passed: Invalid dimensions defaulted to 1" << endl;
+        passed++;
+    } else {
+        cout << "Test 2 FAILED: Invalid constructor handling" << endl;
+        failed++;
+    }
+
+    // Test 3: Translate (valid)
+    r1.translate(10, 5);
+    if (r1.getCoordinates().getX() == 20 && r1.getCoordinates().getY() == 25) {
+        cout << "Test 3 passed: Valid translation" << endl;
+        passed++;
+    } else {
+        cout << "Test 3 FAILED: Translation" << endl;
+        failed++;
+    }
+
+    // Test 4: Translate (invalid)
+    Coordinates before = r1.getCoordinates();
+    r1.translate(-100, -100); // Should be skipped
+    if (r1.getCoordinates().getX() == before.getX() &&
+        r1.getCoordinates().getY() == before.getY()) {
+        cout << "Test 4 passed: Invalid translation skipped" << endl;
+        passed++;
+    } else {
+        cout << "Test 4 FAILED: Invalid translation" << endl;
+        failed++;
+    }
+
+    // Test 5: Scale with factor = 0 (should skip)
+    before = r1.getCoordinates();
+    r1.scale(0, true); // Should do nothing
+    if (r1.getCoordinates().getX() == before.getX()) {
+        cout << "Test 5 passed: Invalid scale factor skipped" << endl;
+        passed++;
+    } else {
+        cout << "Test 5 FAILED: Scale by 0 not handled" << endl;
+        failed++;
+    }
+
+    // Test 6: Scale with valid factor (multiply)
+    r1.scale(2, true); // Should double dimensions
+    if (r1.getArea() == 200 && r1.getPerimeter() == 60 ) {
+        cout << "Test 6 passed: Scale *2" << endl;
+        passed++;
+    } else {
+        cout << "Test 6 FAILED: Scale *2" << endl;
+        failed++;
+    }
+
+    // Test 7: Scale with valid factor (divide)
+    r1.scale(2, false); // Should bring dimensions back to original
+    if (r1.getArea() == 50 && r1.getPerimeter() == 30) {
+        cout << "Test 7 passed: Scale /2" << endl;
+        passed++;
+    } else {
+        cout << "Test 7 FAILED: Scale /2" << endl;
+        failed++;
+    }
+
+    // Test 8: Display contains keywords
+    string output = r1.display();
+    if (output.find("Rectangle") != string::npos &&
+        output.find("Width") != string::npos &&
+        output.find("Area") != string::npos) {
+        cout << "Test 8 passed: Display formatting" << endl;
+        passed++;
+    } else {
+        cout << "Test 8 FAILED: Display output" << endl;
+        failed++;
+    }
+
+    // Summary
+    cout << "========== Test Summary ==========" << endl;
+    cout << "Passed: " << passed << ", Failed: " << failed << endl;
+    cout << "==================================\n" << endl;
+}
+
 // Main Function 
 
 int main() {
     
-    test_coordinate_class() ; 
+    test_rectangle_class() ; 
     return 0 ;
 
 }
