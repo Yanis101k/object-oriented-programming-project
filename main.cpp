@@ -197,6 +197,89 @@ void test_coordinate_class() {
 }
 
 
+//
+// Abstract Shape Class
+// 
+class Shape {
+protected:
+    Coordinates position; // Position of the shape (e.g., top-left or center)
+    int sides;            // Number of sides of the shape
+
+public:
+    // Constructor: sets number of sides and initial position
+    // Constructor: validates number of sides and coordinates
+
+    Shape(int noOfSides, Coordinates coord)
+        : position(0, 0), sides(0)  // default safe values
+    {
+        if (noOfSides < 0) {
+            cout << "Warning: Shape sides cannot be negative. Defaulting to 0." << endl;
+        } else {
+            sides = noOfSides;
+        }
+
+        if (coord.getX() < 0 || coord.getY() < 0) {
+            cout << "Warning: Coordinates must be positive. Defaulting position to (0,0)." << endl;
+        } else {
+            position = coord;
+        }
+    }
+
+    // Getter for coordinates
+    Coordinates getCoordinates() const {
+        return position;
+    }
+
+    // Getter for number of sides
+    int getSides() const {
+        return sides;
+    }
+
+    // Setter for position: only allows non-negative coordinates
+    void setCoordinates(Coordinates newCoord) {
+        if (newCoord.getX() >= 0 && newCoord.getY() >= 0) {
+            position = newCoord;
+        } else {
+            cout << "Warning: Cannot set negative coordinates. Operation skipped." << endl;
+        }
+    }
+
+    // Translate shape: only perform if resulting position stays non-negative
+    virtual void translate(int dx, int dy) {
+        int newX = position.getX() + dx;
+        int newY = position.getY() + dy;
+        if (newX >= 0 && newY >= 0) {
+            position.translate(dx, dy);
+        } else {
+            cout << "Warning: Translation would result in negative coordinates. Operation skipped." << endl;
+        }
+    }
+
+    // Scale shape: only perform if factor is strictly greater than 0
+    virtual void scale(int factor, bool sign) {
+        if (factor <= 0) {
+            cout << "Warning: Scaling factor must be greater than 0. Operation skipped." << endl;
+            return;
+        }
+        position.scale(factor, sign); // This only scales the position
+    }
+
+    // Pure virtual method to compute area (must be overridden)
+    virtual double getArea() const = 0;
+
+    // Pure virtual method to compute perimeter (must be overridden)
+    virtual double getPerimeter() const = 0;
+
+    // Virtual method to return general shape info (can be overridden)
+    virtual string display() const {
+        return "Shape with " + to_string(sides) + " sides at " + position.display();
+    }
+
+    // Virtual destructor
+    virtual ~Shape() {}
+};
+
+
 // Main Function (Testing Coordinates)
 
 int main() {
