@@ -1,0 +1,24 @@
+# Ignore compiled binaries and object files
+*.o
+*.out
+*.exe
+shapes
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore documentation you don’t want to commit
+*.pdf
+
+# Ignore backup and autosave files
+*~
+*.swp
+
+# Ignore build folders (if any)
+build/
+bin/
+
+# Ignore hidden VS Code or IDE folders
+.vscode/
+.idea/

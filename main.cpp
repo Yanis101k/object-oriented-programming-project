@@ -278,9 +278,84 @@ public:
     // Virtual destructor
     virtual ~Shape() {}
 };
+/*
+// ==============================
+// Test function for Shape class
+// ==============================
+void test_shape_class() {
+    cout << "\n========== Running test_shape_class() ==========" << endl;
 
+    int passed = 0, failed = 0;
 
-// Main Function (Testing Coordinates)
+    // Test 1: Valid constructor
+    Shape s1(4, Coordinates(10, 20));
+    if (s1.getSides() == 4 && s1.getCoordinates().getX() == 10) {
+        cout << "Test 1 passed: Valid constructor" << endl;
+        passed++;
+    } else {
+        cout << "Test 1 FAILED: Valid constructor" << endl;
+        failed++;
+    }
+
+    // Test 2: Constructor with invalid sides and negative coordinates
+    Shape s2(-5, Coordinates(-1, -2)); // Should default to 0 sides and (0,0)
+    if (s2.getSides() == 0 && s2.getCoordinates().getX() == 0 && s2.getCoordinates().getY() == 0) {
+        cout << "Test 2 passed: Invalid constructor handled" << endl;
+        passed++;
+    } else {
+        cout << "Test 2 FAILED: Invalid constructor" << endl;
+        failed++;
+    }
+
+    // Test 3: Translate with valid shift
+    s1.translate(5, 5);
+    if (s1.getCoordinates().getX() == 15 && s1.getCoordinates().getY() == 25) {
+        cout << "Test 3 passed: Valid translate" << endl;
+        passed++;
+    } else {
+        cout << "Test 3 FAILED: Valid translate" << endl;
+        failed++;
+    }
+
+    // Test 4: Translate with invalid shift
+    int prevX = s1.getCoordinates().getX();
+    int prevY = s1.getCoordinates().getY();
+    s1.translate(-100, -100); // Should skip
+    if (s1.getCoordinates().getX() == prevX && s1.getCoordinates().getY() == prevY) {
+        cout << "Test 4 passed: Invalid translate skipped" << endl;
+        passed++;
+    } else {
+        cout << "Test 4 FAILED: Invalid translate" << endl;
+        failed++;
+    }
+
+    // Test 5: Scale with invalid factor
+    s1.scale(0, true); // Should skip
+    if (s1.getCoordinates().getX() == prevX && s1.getCoordinates().getY() == prevY) {
+        cout << "Test 5 passed: Invalid scale factor skipped" << endl;
+        passed++;
+    } else {
+        cout << "Test 5 FAILED: Invalid scale not skipped" << endl;
+        failed++;
+    }
+
+    // Test 6: Valid scale
+    s1.scale(2, true);
+    if (s1.getCoordinates().getX() == prevX * 2 && s1.getCoordinates().getY() == prevY * 2) {
+        cout << "Test 6 passed: Valid scale *2" << endl;
+        passed++;
+    } else {
+        cout << "Test 6 FAILED: Valid scale *2" << endl;
+        failed++;
+    }
+
+    // Summary
+    cout << "========== Test Summary ==========" << endl;
+    cout << "Passed: " << passed << ", Failed: " << failed << endl;
+    cout << "==================================\n" << endl;
+} */
+
+// Main Function 
 
 int main() {
     
