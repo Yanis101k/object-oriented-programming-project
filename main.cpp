@@ -690,11 +690,181 @@ void test_square_class() {
     cout << "==================================\n" << endl;
 }
 
+// ==============================
+// Circle Class
+// ==============================
+class Circle : public Shape {
+private:
+    double radius;  // Radius of the circle (must be positive)
+
+public:
+    // Constructor with input validation
+    Circle(Coordinates position, double r)
+        : Shape(0, position)  // Circles are defined with 0 sides
+    {
+        if (r <= 0) {
+            cout << "Warning: Radius must be positive. Defaulting to 1.0." << endl;
+            radius = 1.0;
+        } else {
+            radius = r;
+        }
+    }
+
+    // Override getArea()
+    double getArea() const override {
+        return M_PI * radius * radius;  // M_PI is a standard constant for π from <cmath>
+    }
+
+    // Override getPerimeter()
+    double getPerimeter() const override {
+        return 2 * M_PI * radius;
+    }
+
+    // Override scale(): multiply or divide the radius and scale position
+    void scale(int factor, bool sign) override {
+        if (factor <= 0) {
+            cout << "Warning: Scaling factor must be greater than 0. Operation skipped." << endl;
+            return;
+        }
+
+        // Scale center position (from Shape)
+        Shape::scale(factor, sign);
+
+        // Scale radius
+        if (sign) {
+            radius *= factor;
+        } else {
+            radius /= factor;
+        }
+
+        // Ensure radius remains valid
+        if (radius <= 0) {
+            cout << "Warning: Radius became non-positive after scaling. Resetting to 1.0." << endl;
+            radius = 1.0;
+        }
+    }
+
+    // Override display()
+    string display() const override {
+        return "Circle at " + position.display() +
+               ", Radius = " + to_string(radius) +
+               ", Area = " + to_string(getArea()) +
+               ", Perimeter = " + to_string(getPerimeter());
+    }
+};
+
+
+// ==============================
+// Test function for Circle class
+// ==============================
+void test_circle_class() {
+    cout << "\n========== Running test_circle_class() ==========" << endl;
+
+    int passed = 0, failed = 0;
+
+    // Test 1: Valid constructor
+    Circle c1(Coordinates(10, 10), 5.0);
+    if (c1.getCoordinates().getX() == 10 && c1.getCoordinates().getY() == 10 &&
+        fabs(c1.getArea() - (M_PI * 25.0)) < 0.001 &&
+        fabs(c1.getPerimeter() - (2 * M_PI * 5.0)) < 0.001) {
+        cout << "Test 1 passed: Valid constructor and calculations" << endl;
+        passed++;
+    } else {
+        cout << "Test 1 FAILED: Constructor or calculations" << endl;
+        failed++;
+    }
+
+    // Test 2: Invalid constructor (negative radius)
+    Circle c2(Coordinates(5, 5), -3.0);  // Should default to radius = 1.0
+    if (fabs(c2.getArea() - (M_PI)) < 0.001 &&
+        fabs(c2.getPerimeter() - (2 * M_PI)) < 0.001) {
+        cout << "Test 2 passed: Invalid radius handled" << endl;
+        passed++;
+    } else {
+        cout << "Test 2 FAILED: Invalid radius" << endl;
+        failed++;
+    }
+
+    // Test 3: Valid translate
+    c1.translate(5, 5);
+    if (c1.getCoordinates().getX() == 15 && c1.getCoordinates().getY() == 15) {
+        cout << "Test 3 passed: Valid translate" << endl;
+        passed++;
+    } else {
+        cout << "Test 3 FAILED: Translate" << endl;
+        failed++;
+    }
+
+    // Test 4: Invalid translate
+    Coordinates before = c1.getCoordinates();
+    c1.translate(-100, -100); // Should skip
+    if (c1.getCoordinates().getX() == before.getX() &&
+        c1.getCoordinates().getY() == before.getY()) {
+        cout << "Test 4 passed: Invalid translate skipped" << endl;
+        passed++;
+    } else {
+        cout << "Test 4 FAILED: Invalid translate" << endl;
+        failed++;
+    }
+
+    // Test 5: Scale with valid factor (multiply)
+    c1.scale(2, true);  // Radius = 10
+    if (fabs(c1.getArea() - (M_PI * 100.0)) < 0.001 &&
+        fabs(c1.getPerimeter() - (2 * M_PI * 10.0)) < 0.001) {
+        cout << "Test 5 passed: Scale *2" << endl;
+        passed++;
+    } else {
+        cout << "Test 5 FAILED: Scale *2" << endl;
+        failed++;
+    }
+
+    // Test 6: Scale with valid factor (divide)
+    c1.scale(2, false);  // Radius = 5 again
+    if (fabs(c1.getArea() - (M_PI * 25.0)) < 0.001 &&
+        fabs(c1.getPerimeter() - (2 * M_PI * 5.0)) < 0.001) {
+        cout << "Test 6 passed: Scale /2" << endl;
+        passed++;
+    } else {
+        cout << "Test 6 FAILED: Scale /2" << endl;
+        failed++;
+    }
+
+    // Test 7: Invalid scale (factor = 0)
+    before = c1.getCoordinates();
+    c1.scale(0, true);
+    if (c1.getCoordinates().getX() == before.getX() &&
+        fabs(c1.getArea() - (M_PI * 25.0)) < 0.001 &&
+        fabs(c1.getPerimeter() - (2 * M_PI * 5.0)) < 0.001 ) {
+        cout << "Test 7 passed: Invalid scale skipped" << endl;
+        passed++;
+    } else {
+        cout << "Test 7 FAILED: Invalid scale" << endl;
+        failed++;
+    }
+
+    // Test 8: Display content check
+    string output = c1.display();
+    if (output.find("Circle") != string::npos &&
+        output.find("Radius") != string::npos &&
+        output.find("Area") != string::npos) {
+        cout << "Test 8 passed: Display formatting" << endl;
+        passed++;
+    } else {
+        cout << "Test 8 FAILED: Display check" << endl;
+        failed++;
+    }
+
+    // Summary
+    cout << "========== Test Summary ==========" << endl;
+    cout << "Passed: " << passed << ", Failed: " << failed << endl;
+    cout << "==================================\n" << endl;
+}
+
 
 // Main Function 
 int main() {
     
-    test_rectangle_class() ; 
+    test_circle_class() ; 
     return 0 ;
 
 }
