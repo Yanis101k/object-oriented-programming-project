@@ -207,8 +207,7 @@ protected:
 
 public:
     // Constructor: sets number of sides and initial position
-    // Constructor: validates number of sides and coordinates
-
+    // Constructor: validates number of sides 
     Shape(int noOfSides, Coordinates coord)
         : position(0, 0), sides(0)  // default safe values
     {
@@ -217,12 +216,8 @@ public:
         } else {
             sides = noOfSides;
         }
-
-        if (coord.getX() < 0 || coord.getY() < 0) {
-            cout << "Warning: Coordinates must be positive. Defaulting position to (0,0)." << endl;
-        } else {
             position = coord;
-        }
+        
     }
 
     // Getter for coordinates
@@ -235,13 +230,11 @@ public:
         return sides;
     }
 
-    // Setter for position: only allows non-negative coordinates
+    // Setter for position 
     void setCoordinates(Coordinates newCoord) {
-        if (newCoord.getX() >= 0 && newCoord.getY() >= 0) {
+      
             position = newCoord;
-        } else {
-            cout << "Warning: Cannot set negative coordinates. Operation skipped." << endl;
-        }
+       
     }
 
     // Translate shape: only perform if resulting position stays non-negative
@@ -351,12 +344,12 @@ void test_shape_class() {
 // ==============================
 class Rectangle : public Shape {
 private:
-    int width;   // Width of the rectangle (must be positive)
-    int length;  // Length of the rectangle (must be positive)
+    double width;   // Width of the rectangle (must be positive)
+    double length;  // Length of the rectangle (must be positive)
 
 public:
     // Constructor with validation
-    Rectangle(Coordinates position, int width, int length)
+    Rectangle(Coordinates position, double width, double length)
         : Shape(4, position) // 4 sides passed to Shape constructor
     {
         if (width <= 0 || length <= 0) {
@@ -475,7 +468,11 @@ void test_rectangle_class() {
 
     // Test 6: Scale with valid factor (multiply)
     r1.scale(2, true); // Should double dimensions
-    if (r1.getArea() == 200 && r1.getPerimeter() == 60 ) {
+        // We use fabs( a -b) < 0.001 instead of a == b to compare doubles,
+        // because floating-point values can have small precision errors.
+        // This condition checks if the numbers are "close enough" to be considered equal.
+
+    if ( fabs(r1.getArea() - 200.0) < 0.001 &&  fabs(r1.getPerimeter() - 60.00 ) < 0.001 ) {
         cout << "Test 6 passed: Scale *2" << endl;
         passed++;
     } else {
@@ -484,8 +481,11 @@ void test_rectangle_class() {
     }
 
     // Test 7: Scale with valid factor (divide)
+        // We use fabs( a -b) < 0.001 instead of a == b to compare doubles,
+        // because floating-point values can have small precision errors.
+        // This condition checks if the numbers are "close enough" to be considered equal.
     r1.scale(2, false); // Should bring dimensions back to original
-    if (r1.getArea() == 50 && r1.getPerimeter() == 30) {
+    if ( fabs(r1.getArea() - 50 ) < 0.001  && fabs(r1.getPerimeter() - 30) < 0.001 ) {
         cout << "Test 7 passed: Scale /2" << endl;
         passed++;
     } else {
@@ -511,8 +511,187 @@ void test_rectangle_class() {
     cout << "==================================\n" << endl;
 }
 
-// Main Function 
 
+// Square Class
+
+class Square : public Shape {
+private:
+    double side; // Side length of the square (must be positive)
+
+public:
+
+    // Constructor with input validation
+    Square(Coordinates position, double sideLength)
+        : Shape(4, position) // A square has 4 sides
+    {
+        if (sideLength <= 0) {
+            cout << "Warning: Side must be positive. Defaulting to 1.0." << endl;
+            side = 1.0;
+        } else {
+            side = sideLength;
+        }
+    }
+
+    // Override getArea()
+    double getArea() const override {
+        return side * side;
+    }
+
+    // Override getPerimeter()
+    double getPerimeter() const override {
+        return 4 * side;
+    }
+
+    // Override scale() with validation
+    void scale(int factor, bool sign) override {
+        if (factor <= 0) {
+            cout << "Warning: Scaling factor must be greater than 0. Operation skipped." << endl;
+            return;
+        }
+
+        // Scale position using base class method
+        Shape::scale(factor, sign);
+
+        // Scale side length
+        if (sign) {
+            side *= factor;
+        } else {
+            side /= factor;
+        }
+
+        // Ensure side remains valid
+        if (side <= 0) {
+            cout << "Warning: Scaling resulted in invalid side length. Resetting to 1.0." << endl;
+            side = 1.0;
+        }
+    }
+
+    // Override display()
+    string display() const override {
+        return "Square at " + position.display() +
+               ", Side = " + to_string(side) +
+               ", Area = " + to_string(getArea()) +
+               ", Perimeter = " + to_string(getPerimeter());
+    }
+};
+
+
+// ==============================
+// Test function for Square class
+// ==============================
+void test_square_class() {
+    cout << "\n========== Running test_square_class() ==========" << endl;
+
+    int passed = 0, failed = 0;
+
+    // Test 1: Valid constructor
+    Square s1(Coordinates(10, 20), 4.0);
+    if (s1.getCoordinates().getX() == 10 && s1.getCoordinates().getY() == 20 &&
+        abs(s1.getArea() - 16.0) < 0.001 && abs(s1.getPerimeter() - 16.0) < 0.001) {
+        cout << "Test 1 passed: Valid constructor and calculations" << endl;
+        passed++;
+    } else {
+        cout << "Test 1 FAILED: Constructor or calculations" << endl;
+        failed++;
+    }
+
+    // Test 2: Invalid constructor (negative side)
+    Square s2(Coordinates(5, 5), -2.0);  // Should default to 1.0
+    if (s2.getArea() == 1 && s2.getPerimeter() == 4 ) {
+        cout << "Test 2 passed: Invalid constructor handled" << endl;
+        passed++;
+    } else {
+        cout << "Test 2 FAILED: Invalid constructor" << endl;
+        failed++;
+    }
+
+    // Test 3: Valid translate
+    s1.translate(5, 5);
+    if (s1.getCoordinates().getX() == 15 && s1.getCoordinates().getY() == 25) {
+        cout << "Test 3 passed: Valid translate" << endl;
+        passed++;
+    } else {
+        cout << "Test 3 FAILED: Translate" << endl;
+        failed++;
+    }
+
+    // Test 4: Invalid translate (should skip)
+    Coordinates before = s1.getCoordinates();
+    s1.translate(-100, -100);
+    if (s1.getCoordinates().getX() == before.getX() &&
+        s1.getCoordinates().getY() == before.getY()) {
+        cout << "Test 4 passed: Invalid translate skipped" << endl;
+        passed++;
+    } else {
+        cout << "Test 4 FAILED: Translate check" << endl;
+        failed++;
+    }
+
+    // Test 5: Scale with invalid factor (zero)
+    s1.scale(0, true); // Should skip
+
+        // We use fabs( a -b) < 0.001 instead of a == b to compare doubles,
+        // because floating-point values can have small precision errors.
+        // This condition checks if the numbers are "close enough" to be considered equal.
+    if (fabs(s1.getArea() - 16.0) < 0.001 && fabs( s1.getPerimeter() - 16.0 ) < 0.001 ) {
+        cout << "Test 5 passed: Invalid scale factor skipped" << endl;
+        passed++;
+    } else {
+        cout << "Test 5 FAILED: Scale by 0 not handled" << endl;
+        failed++;
+    }
+
+    // Test 6: Valid scale (multiply)
+    s1.scale(2, true); // side becomes 8
+
+        // We use fabs( a -b) < 0.001 instead of a == b to compare doubles,
+        // because floating-point values can have small precision errors.
+        // This condition checks if the numbers are "close enough" to be considered equal.
+    if (fabs(s1.getArea() - 64.0) < 0.001 && fabs(s1.getPerimeter() - 32.0) < 0.001) {
+        cout << "Test 6 passed: Scale *2" << endl;
+        passed++;
+    } else {
+        cout << "Test 6 FAILED: Scale *2" << endl;
+        failed++;
+    }
+
+
+
+
+    // Test 7: Valid scale (divide)
+    s1.scale(2, false); // side becomes 4 again
+
+        // We use fabs( a -b) < 0.001 instead of a == b to compare doubles,
+        // because floating-point values can have small precision errors.
+        // This condition checks if the numbers are "close enough" to be considered equal.
+    if (fabs(s1.getArea() - 16.0) < 0.001 && fabs(s1.getPerimeter() - 16.0) < 0.001) {
+        cout << "Test 7 passed: Scale /2" << endl;
+        passed++;
+    } else {
+        cout << "Test 7 FAILED: Scale /2" << endl;
+        failed++;
+    }
+
+    // Test 8: Display string contains key info
+    string output = s1.display();
+    if (output.find("Square") != string::npos &&
+        output.find("Side") != string::npos &&
+        output.find("Area") != string::npos) {
+        cout << "Test 8 passed: Display formatting" << endl;
+        passed++;
+    } else {
+        cout << "Test 8 FAILED: Display check" << endl;
+        failed++;
+    }
+
+    // Summary
+    cout << "========== Test Summary ==========" << endl;
+    cout << "Passed: " << passed << ", Failed: " << failed << endl;
+    cout << "==================================\n" << endl;
+}
+
+
+// Main Function 
 int main() {
     
     test_rectangle_class() ; 
