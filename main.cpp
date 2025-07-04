@@ -2,16 +2,19 @@
 #include <cmath>
 #include <string>
 using namespace std;
+#include <vector>
 
-// ==============================
+
 // Coordinates Class
-// ==============================
+
 class Coordinates {
 private:
     int x;  // X coordinate (must be positive)
     int y;  // Y coordinate (must be positive)
 
 public:
+
+    Coordinates() : x(0), y(0) {} // a default constructor
     // Constructor with validation to ensure positive coordinates
     Coordinates(int xVal, int yVal) {
         if (xVal < 0 || yVal < 0) {
@@ -860,11 +863,437 @@ void test_circle_class() {
     cout << "==================================\n" << endl;
 }
 
+// Triangle class 
+class Triangle : public Shape {
+private :
+// Coordinates of the three Points that correspond to the three vertices of the triangle
+        Coordinates position1 , position2  , position3 ; 
+        
+public:
+  // class Constructor
+  Triangle( Coordinates position1 , Coordinates position2 , Coordinates position3 )
+          : Shape( 3 , position1 ) // triangle defined with three sides and the base class will store the first position of it three
+   {
+    this->position1 = position1 ; this->position2 = position2 ; this->position3 = position3 ;
+   }  
 
-// Main Function 
-int main() {
+   // Override getPerimeter()
+   double getPerimeter() const override {
+
+    // calculates the three sides of the triangles and return thier sum  
+    double side1 = position1.distance( position2 ) ; 
+    double side2 = position1.distance ( position3 ) ; 
+    double side3 = position2.distance( position3 ) ; 
+
+    return side1 + side2 + side3 ; 
+
+   }
+   
+   // Override getArea()
+   double getArea() const override {
     
-    test_circle_class() ; 
-    return 0 ;
+    /* 
+    calculate the are of triangle using this formula : 
 
+    𝑎𝑟𝑒𝑎 = √𝑠(𝑠 − 𝑎)(𝑠 − 𝑏)(𝑠 − 𝑐)
+
+    where a , b , c are three sides of our triangle 
+
+    and s is semiperimeter = ( a + b + c ) / 2 
+
+    */
+
+    // calculates the three sides of the triangles
+    double side1 = position1.distance( position2 ) ; 
+    double side2 = position1.distance ( position3 ) ; 
+    double side3 = position2.distance( position3 ) ; 
+
+    double s =  ( side1 + side2 + side3 ) / 2.0 ;  // semiperimeter  calculation 
+
+    return sqrt( s * ( s - side1 ) * ( s - side2 ) * ( s - side3 )) ; 
+
+   }
+
+   // override translate() 
+   void translate( int dx , int dy ) override {
+
+    // translate all the three positions 
+    position1.translate( dx , dy ) ;
+    position2.translate( dx , dy ) ; 
+    position3.translate( dx , dy ) ; 
+
+   }
+
+   // override scale()
+
+   void scale( int factor , bool sign ) override {
+
+   
+        position1.scale( factor  , sign ) ;
+        position2.scale( factor, sign ) ;
+        position3.scale( factor, sign ) ;
+
+   }
+
+   // Override display()
+   string display() const override {
+    return "Triangle At " + position1.display() + " | "+ position2.display() + " | " + position3.display() +
+    ", Area = " + to_string(getArea()) +
+    ", Perimeter = " + to_string(getPerimeter());
+    
+   }
+   
+   
+} ;
+
+
+// ShapeList Class
+
+class ShapeList {
+private:
+    vector<Shape*> listofShapes;  // Stores a list of shapes using polymorphism
+
+public:
+    // Add a shape to the list
+    void addShape(Shape* s) {
+        if (s != nullptr) {
+            listofShapes.push_back(s);
+        }
+    }
+
+    // Translate all shapes in the list by (dx, dy)
+    void translateShapes(int dx, int dy) {
+        for (Shape* s : listofShapes) {
+            if (s != nullptr) {
+                s->translate(dx, dy);
+            }
+        }
+    }
+
+    // Return the shape at a specific position (index starts at 0)
+    Shape* getShape(int pos) {
+        if (pos >= 0 && pos < static_cast<int>(listofShapes.size())) {
+            return listofShapes[pos];
+        }
+        cout << "Warning: Invalid position in getShape(). Returning nullptr." << endl;
+        return nullptr;
+    }
+
+    // Remove the shape at a specific position and return it (caller is responsible for deletion)
+    Shape* removeShape(int pos) {
+        if (pos >= 0 && pos < static_cast<int>(listofShapes.size())) {
+            Shape* removed = listofShapes[pos];
+            listofShapes.erase(listofShapes.begin() + pos);
+            return removed;
+        }
+        cout << "Warning: Invalid position in removeShape()." << endl;
+        return nullptr;
+    }
+
+    // Return the area of the shape at a given position
+    double area(int pos) {
+        Shape* s = getShape(pos);
+        if (s != nullptr) {
+            return s->getArea();
+        }
+        return -1.0;
+    }
+
+    // Return the perimeter of the shape at a given position
+    double perimeter(int pos) {
+        Shape* s = getShape(pos);
+        if (s != nullptr) {
+            return s->getPerimeter();
+        }
+        return -1.0;
+    }
+
+    // Scale all shapes in the list
+    void scale(int factor, bool sign) {
+        for (Shape* s : listofShapes) {
+            if (s != nullptr) {
+                s->scale(factor, sign);
+            }
+        }
+    }
+
+    // Display information about all shapes
+    string display() {
+        string result = "--- Shape List ---\n\n";
+        for (size_t i = 0; i < listofShapes.size(); ++i) {
+            result += "Shape " + to_string(i + 1) + ": " + listofShapes[i]->display() + "\n\n";
+        }
+        return result;
+    }
+
+    // Destructor: delete all dynamically allocated shapes
+    ~ShapeList() {
+        for (Shape* s : listofShapes) {
+            delete s;
+        }
+        listofShapes.clear();
+    }
+};
+
+
+// ShapeManagement Class
+
+class ShapeManagement {
+private:
+    ShapeList shapes;  // Composition: ShapeManagement "has-a" ShapeList
+
+public:
+    // Display menu options
+    void displayMenu() {
+        cout << "\n\n Shape Management Menu " << endl;
+        cout << "1. Add a shape" << endl;
+        cout << "2. Remove a shape" << endl;
+        cout << "3. Display all shapes" << endl;
+        cout << "4. Translate all shapes" << endl;
+        cout << "5. Scale all shapes" << endl;
+        cout << "6. Get area of a shape by position" << endl;
+        cout << "7. Get perimeter of a shape by position" << endl;
+        cout << "0. Exit\n\n" << endl;
+    }
+
+    // Add a shape (user selects type and provides input)
+    void addShape() {
+        int type;
+        cout << "Select shape type: 1-Rectangle, 2-Circle, 3-Square, 4-Triangle: ";
+        cin >> type;
+
+        if (type == 1) {
+            int x, y;
+            double width, length;
+            cout << "Enter x y coordinates: ";
+            cin >> x >> y;
+            cout << "Enter width and length: ";
+            cin >> width >> length;
+            shapes.addShape(new Rectangle(Coordinates(x, y), width, length));
+        }
+        else if (type == 2) {
+            int x, y;
+            double radius;
+            cout << "Enter x y coordinates: ";
+            cin >> x >> y;
+            cout << "Enter radius: ";
+            cin >> radius;
+            shapes.addShape(new Circle(Coordinates(x, y), radius));
+        }
+        else if (type == 3) {
+            int x, y;
+            double side;
+            cout << "Enter x y coordinates: ";
+            cin >> x >> y;
+            cout << "Enter side length: ";
+            cin >> side;
+            shapes.addShape(new Square(Coordinates(x, y), side));
+        }
+        else if (type == 4) {
+            int x1, y1, x2, y2, x3, y3;
+            cout << "Enter coordinates of point 1: ";
+            cin >> x1 >> y1;
+            cout << "Enter coordinates of point 2: ";
+            cin >> x2 >> y2;
+            cout << "Enter coordinates of point 3: ";
+            cin >> x3 >> y3;
+            shapes.addShape(new Triangle(
+                Coordinates(x1, y1),
+                Coordinates(x2, y2),
+                Coordinates(x3, y3)
+            ));
+        } else {
+            cout << "Invalid shape type selected." << endl;
+        }
+    }
+
+    // Remove a shape at a given position
+    void removeShape() {
+        int pos;
+        cout << "Enter shape position to remove (starting from 0): ";
+        cin >> pos;
+        Shape* removed = shapes.removeShape(pos);
+        if (removed != nullptr) {
+            cout << "Shape removed: " << removed->display() << endl;
+            delete removed;  // Important: free memory
+        }
+    }
+
+    // Display all shapes
+    void displayShapes() {
+        cout << shapes.display();
+    }
+     
+        // Get area of a shape at a given position
+    void getAreaOfShape() {
+        int pos;
+        cout << "Enter shape position to calculate area (starting from 0): ";
+        cin >> pos;
+        double result = shapes.area(pos);
+        if (result >= 0) {
+            cout << "Area of shape at position " << pos << " = " << result << endl;
+        } else {
+            cout << "Invalid position. Cannot compute area." << endl;
+        }
+    }
+
+    // Get perimeter of a shape at a given position
+    void getPerimeterOfShape() {
+        int pos;
+        cout << "Enter shape position to calculate perimeter (starting from 0): ";
+        cin >> pos;
+        double result = shapes.perimeter(pos);
+        if (result >= 0) {
+            cout << "Perimeter of shape at position " << pos << " = " << result << endl;
+        } else {
+            cout << "Invalid position. Cannot compute perimeter." << endl;
+        }
+    }
+    // Translate all shapes
+    void translateShapes() {
+        int dx, dy;
+        cout << "Enter dx and dy to translate all shapes: ";
+        cin >> dx >> dy;
+        shapes.translateShapes(dx, dy);
+    }
+
+    // Scale all shapes
+    void scaleShapes() {
+        int factor;
+        bool sign;
+        cout << "Enter scale factor: ";
+        cin >> factor;
+        cout << "Enter scale type (1 for multiply, 0 for divide): ";
+        cin >> sign;
+        shapes.scale(factor, sign);
+    }
+
+            // Direct add method for testing (bypasses menu)
+        void addShapeDirectly(Shape* shape) {
+            shapes.addShape(shape);
+        }
+
+        // Provide access to ShapeList for testing
+        ShapeList& getShapeList() {
+            return shapes;
+        }
+};
+
+// ==============================
+// Test function for ATI Test Plan
+// ==============================
+void test_ATI_functional_scenario() {
+    cout << "\n========== Running ATI Functional Test Scenario ==========" << endl;
+
+    ShapeManagement manager;
+
+    // Helper access to ShapeList
+    ShapeList& shapeList = manager.getShapeList();
+
+    // Step 1: Add Triangle
+    Triangle* t = new Triangle(Coordinates(50, 50), Coordinates(20, 70), Coordinates(70, 70));
+    manager.addShapeDirectly(t);
+
+    // Step 2: Add Rectangle
+    Rectangle* r = new Rectangle(Coordinates(100, 20), 10, 15);
+    manager.addShapeDirectly(r);
+
+    // Step 3: Add Circle
+    Circle* c = new Circle(Coordinates(80, 100), 25);
+    manager.addShapeDirectly(c);
+
+    // Step 4: Add Square
+    Square* s = new Square(Coordinates(90, 40), 20);
+    manager.addShapeDirectly(s);
+
+    // Step 5: Add 3 more shapes
+    manager.addShapeDirectly(new Rectangle(Coordinates(10, 10), 5, 6));
+    manager.addShapeDirectly(new Triangle(Coordinates(0, 0), Coordinates(30, 0), Coordinates(15, 25)));
+    manager.addShapeDirectly(new Square(Coordinates(5, 5), 10));
+
+    // Step 6: Area and perimeter of second shape (index 1)
+    cout << "Area of shape 2: " << shapeList.area(1) << endl;
+    cout << "Perimeter of shape 2: " << shapeList.perimeter(1) << endl;
+
+    // Step 7: Display all shapes
+    cout << shapeList.display();
+
+    // Step 8: Remove third shape (index 2)
+    Shape* removed = shapeList.removeShape(2);
+    if (removed) {
+        cout << "Removed shape: " << removed->display() << endl;
+        delete removed;
+    }
+
+    // Step 9: Translate all shapes by (10, 15)
+    shapeList.translateShapes(10, 15);
+
+    // Step 10: Display all shapes after translation
+    cout << "\n--- After Translation ---\n";
+    cout << shapeList.display();
+
+    // Step 11: Scale all shapes by factor 2 (multiply)
+    shapeList.scale(2, true);
+
+    // Step 12: Display all shapes after scaling
+    cout << "\n--- After Scaling ---\n";
+    cout << shapeList.display();
+
+    // Step 13: Error handling - invalid index
+    Shape* sErr = shapeList.removeShape(20);
+    if (!sErr) cout << "Handled invalid remove correctly.\n";
+
+    double aErr = shapeList.area(100);
+    if (aErr < 0) cout << "Handled invalid area correctly.\n";
+
+    cout << "========== ATI Test Completed ==========" << endl;
+}
+
+// Main Function
+
+int main() {
+     //test_ATI_functional_scenario() ; 
+    
+    ShapeManagement manager;  // Create shape manager
+    int choice;
+
+    do {
+        // Display menu options
+        manager.displayMenu();
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        // Handle user choice
+        switch (choice) {
+            case 1:
+                manager.addShape();
+                break;
+            case 2:
+                manager.removeShape();
+                break;
+            case 3:
+                manager.displayShapes();
+                break;
+            case 4:
+                manager.translateShapes();
+                break;
+            case 5:
+                manager.scaleShapes();
+                break;
+            case 6:
+                manager.getAreaOfShape();
+                break;
+            case 7:
+                manager.getPerimeterOfShape();
+                break;
+            case 0:
+                cout << "Exiting program. Goodbye!" << endl;
+                break;
+            default:
+                cout << "Invalid choice. Please try again." << endl;
+        }
+
+    } while (choice != 0);  // Keep running until user selects Exit */
+
+    return 0;
 }
